@@ -73,9 +73,17 @@ public class NotesController : ControllerBase
     public ActionResult<Note> Get([FromRoute] int noteId)
     {
         var note = _database.Notes.Find(noteId);
+
         if (note == null)
         {
             return NotFound($"Note with noteId {noteId} not found");
+        }
+
+        var authorizationHeader = Request.Headers["Authorization"];
+        var user = BasicAuthenticationHandler.GetUserFrom(authorizationHeader);
+        if (note.Author != user.Username)
+        {
+            return Forbid();
         }
 
         return Ok(note);
